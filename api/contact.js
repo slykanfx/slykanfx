@@ -1,5 +1,9 @@
 export default async function handler(req, res) {
 
+  /* ----------------------------------------
+     ALLOW ONLY POST
+  ---------------------------------------- */
+
   if (req.method !== "POST") {
 
     return res.status(405).json({
@@ -39,65 +43,85 @@ export default async function handler(req, res) {
     }
 
     /* ----------------------------------------
-       DISCORD
+       DISCORD WEBHOOK
     ---------------------------------------- */
 
-    await fetch(process.env.DISCORD_WEBHOOK_URL, {
+    const discordResponse = await fetch(
+      process.env.DISCORD_WEBHOOK_URL,
+      {
 
-      method: "POST",
+        method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+        headers: {
+          "Content-Type": "application/json"
+        },
 
-      body: JSON.stringify({
+        body: JSON.stringify({
 
-        embeds: [{
+          embeds: [{
 
-          title: "📩 New Freelance Inquiry",
+            title: "📩 New Freelance Inquiry",
 
-          color: 5814783,
+            color: 5814783,
 
-          fields: [
+            fields: [
 
-            {
-              name: "👤 Name",
-              value: name,
-              inline: true
+              {
+                name: "👤 Name",
+                value: name,
+                inline: true
+              },
+
+              {
+                name: "📧 Email",
+                value: email,
+                inline: true
+              },
+
+              {
+                name: "💼 Work",
+                value: work,
+                inline: false
+              },
+
+              {
+                name: "📝 Message",
+                value: message,
+                inline: false
+              }
+
+            ],
+
+            footer: {
+              text: "SlykanFx Portfolio"
             },
 
-            {
-              name: "📧 Email",
-              value: email,
-              inline: true
-            },
+            timestamp: new Date()
 
-            {
-              name: "💼 Work",
-              value: work,
-              inline: false
-            },
-
-            {
-              name: "📝 Message",
-              value: message,
-              inline: false
-            }
-
-          ],
-
-          footer: {
-            text: "SlykanFx Portfolio"
-          },
-
-          timestamp: new Date()
-
-        }]
-      })
-    });
+          }]
+        })
+      }
+    );
 
     /* ----------------------------------------
-       WEB3FORMS
+       CHECK DISCORD STATUS
+    ---------------------------------------- */
+
+    if (!discordResponse.ok) {
+
+      console.error(
+        "DISCORD REQUEST FAILED:",
+        discordResponse.status
+      );
+
+      return res.status(500).json({
+        success: false,
+        message: "Discord Webhook Failed"
+      });
+    }
+
+    /* ----------------------------------------
+       WEB3FORMS EMAIL
     ---------------------------------------- */
 
     const web3Response = await fetch(
@@ -131,17 +155,16 @@ export default async function handler(req, res) {
       }
     );
 
-    const web3Data = await web3Response.json();
-
-    console.log("WEB3 RESPONSE:", web3Data);
-
     /* ----------------------------------------
        CHECK WEB3 STATUS
     ---------------------------------------- */
 
-    if (!web3Data.success) {
+    if (!web3Response.ok) {
 
-      console.error("WEB3 ERROR:", web3Data);
+      console.error(
+        "WEB3FORMS REQUEST FAILED:",
+        web3Response.status
+      );
 
       return res.status(500).json({
         success: false,
@@ -149,13 +172,21 @@ export default async function handler(req, res) {
       });
     }
 
+    /* ----------------------------------------
+       SUCCESS
+    ---------------------------------------- */
+
     return res.status(200).json({
-      success: true
+      success: true,
+      message: "Form submitted successfully"
     });
 
   } catch (error) {
 
-    console.error("SERVER ERROR:", error);
+    console.error(
+      "SERVER ERROR:",
+      error
+    );
 
     return res.status(500).json({
       success: false,
