@@ -10,27 +10,36 @@ export default async function handler(req, res) {
 
   try {
 
+    /* ----------------------------------------
+       SAFE BODY PARSE
+    ---------------------------------------- */
+
+    const body =
+      typeof req.body === "string"
+      ? JSON.parse(req.body)
+      : req.body;
+
     const {
       name,
       email,
       work,
       message
-    } = req.body;
+    } = body;
 
     /* ----------------------------------------
-       BASIC VALIDATION
+       VALIDATION
     ---------------------------------------- */
 
     if (!name || !email || !work || !message) {
 
       return res.status(400).json({
         success: false,
-        message: "Missing fields"
+        message: "Missing Fields"
       });
     }
 
     /* ----------------------------------------
-       SEND TO DISCORD
+       DISCORD
     ---------------------------------------- */
 
     await fetch(process.env.DISCORD_WEBHOOK_URL, {
@@ -52,7 +61,7 @@ export default async function handler(req, res) {
           fields: [
 
             {
-              name: "👤 Client",
+              name: "👤 Name",
               value: name,
               inline: true
             },
@@ -64,13 +73,13 @@ export default async function handler(req, res) {
             },
 
             {
-              name: "💼 Service",
+              name: "💼 Work",
               value: work,
               inline: false
             },
 
             {
-              name: "📝 Project Details",
+              name: "📝 Message",
               value: message,
               inline: false
             }
@@ -88,7 +97,7 @@ export default async function handler(req, res) {
     });
 
     /* ----------------------------------------
-       SEND TO WEB3FORMS
+       WEB3FORMS
     ---------------------------------------- */
 
     await fetch("https://api.web3forms.com/submit", {
@@ -113,7 +122,6 @@ export default async function handler(req, res) {
         message
 
       })
-
     });
 
     return res.status(200).json({
@@ -122,11 +130,11 @@ export default async function handler(req, res) {
 
   } catch (error) {
 
-    console.error(error);
+    console.error("SERVER ERROR:", error);
 
     return res.status(500).json({
       success: false,
-      message: "Server Error"
+      message: error.message
     });
   }
 }
