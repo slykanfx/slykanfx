@@ -52,110 +52,157 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
  /* ----------------------------------------------------
-   POPUP FORM (HIRE ME)
+   POPUP FORM
 ---------------------------------------------------- */
 
 const hireBtn = document.getElementById("hire-me-btn");
 const hireForm = document.getElementById("hire-form");
 const formOverlay = document.getElementById("form-overlay");
 const closeBtn = document.getElementById("close-btn");
-const popupFormElement = document.getElementById("popupFormElement");
-const popupMessage = document.getElementById("popupMessage");
 
-const nameError = document.getElementById("nameError");
-const emailError = document.getElementById("emailError");
-const workError = document.getElementById("workError");
-const messageError = document.getElementById("messageError");
+const popupFormElement =
+document.getElementById("popupFormElement");
 
-if (
-  hireBtn &&
-  hireForm &&
-  formOverlay &&
-  closeBtn &&
-  popupFormElement &&
-  popupMessage
-) {
+const popupMessage =
+document.getElementById("popupMessage");
 
-  /* ----------------------------------------
-     OPEN POPUP
-  ---------------------------------------- */
+const nameError =
+document.getElementById("nameError");
 
-  hireBtn.addEventListener("click", () => {
+const emailError =
+document.getElementById("emailError");
 
-    hireForm.style.display = "block";
-    formOverlay.style.display = "block";
+const workError =
+document.getElementById("workError");
 
-    popupMessage.style.display = "none";
-    popupFormElement.style.display = "block";
+const messageError =
+document.getElementById("messageError");
 
-    popupFormElement.reset();
 
-    clearErrors();
-  });
+/* ----------------------------------------------------
+   OPEN FORM
+---------------------------------------------------- */
 
-  /* ----------------------------------------
-     CLOSE POPUP
-  ---------------------------------------- */
+hireBtn.addEventListener("click", () => {
 
-  const closeForm = () => {
+  hireForm.style.display = "block";
 
-    hireForm.style.display = "none";
-    formOverlay.style.display = "none";
-  };
+  formOverlay.style.display = "block";
 
-  closeBtn.addEventListener("click", closeForm);
-  formOverlay.addEventListener("click", closeForm);
+  popupMessage.style.display = "none";
 
-  /* ----------------------------------------
-     FORM SUBMIT
-  ---------------------------------------- */
+  popupFormElement.style.display = "block";
 
-  popupFormElement.addEventListener("submit", async (e) => {
+  popupFormElement.reset();
+
+  clearErrors();
+});
+
+
+/* ----------------------------------------------------
+   CLOSE FORM
+---------------------------------------------------- */
+
+function closeForm() {
+
+  hireForm.style.display = "none";
+
+  formOverlay.style.display = "none";
+}
+
+closeBtn.addEventListener("click", closeForm);
+
+formOverlay.addEventListener("click", closeForm);
+
+
+/* ----------------------------------------------------
+   SUBMIT FORM
+---------------------------------------------------- */
+
+popupFormElement.addEventListener(
+  "submit",
+  async (e) => {
 
     e.preventDefault();
 
     clearErrors();
 
-    const name = document.getElementById("name").value.trim();
-    const email = document.getElementById("email").value.trim();
-    const work = document.getElementById("work").value.trim();
-    const message = document.getElementById("message").value.trim();
+    const name =
+    document.getElementById("name").value.trim();
+
+    const email =
+    document.getElementById("email").value.trim();
+
+    const work =
+    document.getElementById("work").value.trim();
+
+    const message =
+    document.getElementById("message").value.trim();
 
     let hasError = false;
 
-    /* ----------------------------------------
-       VALIDATION
-    ---------------------------------------- */
+    /* VALIDATION */
 
     if (!name) {
-      nameError.textContent = "Enter your name";
+
+      nameError.textContent =
+      "Enter your name";
+
       hasError = true;
     }
 
     if (!email) {
-      emailError.textContent = "Enter your email";
+
+      emailError.textContent =
+      "Enter your email";
+
       hasError = true;
     }
 
     if (!work) {
-      workError.textContent = "Enter project type";
+
+      workError.textContent =
+      "Enter project type";
+
       hasError = true;
     }
 
     if (!message) {
-      messageError.textContent = "Enter your message";
+
+      messageError.textContent =
+      "Enter your message";
+
       hasError = true;
     }
 
     if (hasError) return;
 
-    /* ----------------------------------------
-       SEND TO VERCEL API
-    ---------------------------------------- */
-
     try {
 
-      const response = await fetch("/api/contact", {
+      /* ----------------------------------------
+         WEB3FORMS EMAIL
+      ---------------------------------------- */
+
+      const formData = new FormData(
+        popupFormElement
+      );
+
+      await fetch(
+        "https://api.web3forms.com/submit",
+        {
+
+          method: "POST",
+
+          body: formData
+        }
+      );
+
+
+      /* ----------------------------------------
+         DISCORD API
+      ---------------------------------------- */
+
+      await fetch("/api/contact", {
 
         method: "POST",
 
@@ -164,68 +211,70 @@ if (
         },
 
         body: JSON.stringify({
+
           name,
           email,
           work,
           message
-        })
 
+        })
       });
 
-      const data = await response.json();
 
-      if (data.success) {
+      /* ----------------------------------------
+         SUCCESS
+      ---------------------------------------- */
 
-        popupFormElement.style.display = "none";
-        popupMessage.style.display = "block";
+      popupFormElement.style.display =
+      "none";
 
-        popupMessage.innerHTML =
-        "Your response has been submitted successfully.";
+      popupMessage.style.display =
+      "block";
 
-        popupFormElement.reset();
+      popupMessage.innerHTML =
+      "Your response has been submitted successfully.";
 
-        setTimeout(() => {
+      popupFormElement.reset();
 
-          closeForm();
+      setTimeout(() => {
 
-          popupFormElement.style.display = "block";
-          popupMessage.style.display = "none";
+        closeForm();
 
-        }, 2500);
+        popupFormElement.style.display =
+        "block";
 
-      } else {
+        popupMessage.style.display =
+        "none";
 
-        popupMessage.style.display = "block";
-
-        popupMessage.innerHTML =
-        "Failed to submit form.";
-
-      }
+      }, 2500);
 
     } catch (error) {
 
       console.error(error);
 
-      popupMessage.style.display = "block";
+      popupMessage.style.display =
+      "block";
 
       popupMessage.innerHTML =
       "Something went wrong.";
 
     }
+  }
+);
 
-  });
 
-}
-
-/* ----------------------------------------
+/* ----------------------------------------------------
    CLEAR ERRORS
----------------------------------------- */
+---------------------------------------------------- */
 
 function clearErrors() {
 
   nameError.textContent = "";
+
   emailError.textContent = "";
+
   workError.textContent = "";
+
   messageError.textContent = "";
 }
 
