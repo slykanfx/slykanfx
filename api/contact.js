@@ -100,29 +100,54 @@ export default async function handler(req, res) {
        WEB3FORMS
     ---------------------------------------- */
 
-    await fetch("https://api.web3forms.com/submit", {
+    const web3Response = await fetch(
+      "https://api.web3forms.com/submit",
+      {
 
-      method: "POST",
+        method: "POST",
 
-      headers: {
-        "Content-Type": "application/json"
-      },
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
 
-      body: JSON.stringify({
+        body: JSON.stringify({
 
-        access_key: process.env.WEB3FORMS_ACCESS_KEY,
+          access_key: process.env.WEB3FORMS_ACCESS_KEY,
 
-        subject: "New Freelance Inquiry",
+          subject: "New Freelance Inquiry",
 
-        from_name: "SlykanFx Portfolio",
+          from_name: "SlykanFx Portfolio",
 
-        name,
-        email,
-        work,
-        message
+          name: name,
 
-      })
-    });
+          email: email,
+
+          work: work,
+
+          message: message
+
+        })
+      }
+    );
+
+    const web3Data = await web3Response.json();
+
+    console.log("WEB3 RESPONSE:", web3Data);
+
+    /* ----------------------------------------
+       CHECK WEB3 STATUS
+    ---------------------------------------- */
+
+    if (!web3Data.success) {
+
+      console.error("WEB3 ERROR:", web3Data);
+
+      return res.status(500).json({
+        success: false,
+        message: "Web3Forms Failed"
+      });
+    }
 
     return res.status(200).json({
       success: true
